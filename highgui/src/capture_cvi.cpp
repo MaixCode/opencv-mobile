@@ -2543,15 +2543,74 @@ static const struct sns_ini_cfg* get_sns_ini_cfg()
     if (device_model == 3)
     {
         // licheerv nano
-        static const struct sns_ini_cfg lpirvnano = {
-            4,  // bus_id
-            29, // sns_i2c_addr
-            0,  // mipi_dev
-            {2, 1, 0, -1, -1},  // lane_id
-            {0, 0, 0, 0, 0},    // pn_swap
-            true,   // mclk_en
-            0       // mclk
-        };
+
+        // for licheerv nano, you should read /mnt/data/sensor_cfg.ini
+        // to get the sensor configuration. see issue#134.
+        // actually, it is not very elegant to read the configuration from a file.
+        FILE *fp = fopen("/mnt/data/sensor_cfg.ini", "r");
+        if (!fp)
+        {
+            fprintf(stderr, "failed to open sensor_cfg.ini\n");
+            return NULL;
+        }
+
+        sns_ini_cfg config;
+        char line[256];
+        while (fgets(line, sizeof(line), fp))
+        {
+            std::string str(line);
+            if (str.find("name") != std::string::npos)
+            {
+                // 跳过 name 字段
+            }
+            else if (str.find("bus_id") != std::string::npos)
+            {
+                config.bus_id = std::stoi(str.substr(str.find('=') + 1));
+            }
+            else if (str.find("sns_i2c_addr") != std::string::npos)
+            {
+                config.sns_i2c_addr = std::stoi(str.substr(str.find('=') + 1));
+            }
+            else if (str.find("mipi_dev") != std::string::npos)
+            {
+                config.mipi_dev = std::stoi(str.substr(str.find('=') + 1));
+            }
+            else if (str.find("lane_id") != std::string::npos)
+            {
+                std::string values = str.substr(str.find('=') + 1);
+                std::stringstream ss(values);
+                std::string value;
+                int i = 0;
+                while (std::getline(ss, value, ',') && i < 5)
+                {
+                    config.lane_id[i++] = std::stoi(value);
+                }
+            }
+            else if (str.find("pn_swap") != std::string::npos)
+            {
+                std::string values = str.substr(str.find('=') + 1);
+                std::stringstream ss(values);
+                std::string value;
+                int i = 0;
+                while (std::getline(ss, value, ',') && i < 5)
+                {
+                    config.pn_swap[i++] = std::stoi(value);
+                }
+            }
+            else if (str.find("mclk_en") != std::string::npos)
+            {
+                config.mclk_en = std::stoi(str.substr(str.find('=') + 1)) != 0;
+            }
+            else if (str.find("mclk") != std::string::npos)
+            {
+                config.mclk = std::stoi(str.substr(str.find('=') + 1));
+            }
+        }
+
+        fclose(fp);
+
+        // Use the configuration read from sensor_cfg.ini
+        static const struct sns_ini_cfg lpirvnano = config;
 
         return &lpirvnano;
     }
