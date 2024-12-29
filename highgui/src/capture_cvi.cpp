@@ -2558,52 +2558,52 @@ static const struct sns_ini_cfg* get_sns_ini_cfg()
         char line[256];
         while (fgets(line, sizeof(line), fp))
         {
-            std::string str(line);
-            if (str.find("name") != std::string::npos)
+            char* str = line;
+            if (strstr(str, "name") != NULL)
             {
                 // 跳过 name 字段
             }
-            else if (str.find("bus_id") != std::string::npos)
+            else if (strstr(str, "bus_id") != NULL)
             {
-                config.bus_id = std::stoi(str.substr(str.find('=') + 1));
+                config.bus_id = atoi(strchr(str, '=') + 1);
             }
-            else if (str.find("sns_i2c_addr") != std::string::npos)
+            else if (strstr(str, "sns_i2c_addr") != NULL)
             {
-                config.sns_i2c_addr = std::stoi(str.substr(str.find('=') + 1));
+                config.sns_i2c_addr = atoi(strchr(str, '=') + 1);
             }
-            else if (str.find("mipi_dev") != std::string::npos)
+            else if (strstr(str, "mipi_dev") != NULL)
             {
-                config.mipi_dev = std::stoi(str.substr(str.find('=') + 1));
+                config.mipi_dev = atoi(strchr(str, '=') + 1);
             }
-            else if (str.find("lane_id") != std::string::npos)
+            else if (strstr(str, "lane_id") != NULL)
             {
-                std::string values = str.substr(str.find('=') + 1);
-                std::stringstream ss(values);
-                std::string value;
+                char* values = strchr(str, '=') + 1;
+                char* token = strtok(values, ",");
                 int i = 0;
-                while (std::getline(ss, value, ',') && i < 5)
+                while (token != NULL && i < 5)
                 {
-                    config.lane_id[i++] = std::stoi(value);
+                    config.lane_id[i++] = atoi(token);
+                    token = strtok(NULL, ",");
                 }
             }
-            else if (str.find("pn_swap") != std::string::npos)
+            else if (strstr(str, "pn_swap") != NULL)
             {
-                std::string values = str.substr(str.find('=') + 1);
-                std::stringstream ss(values);
-                std::string value;
+                char* values = strchr(str, '=') + 1;
+                char* token = strtok(values, ",");
                 int i = 0;
-                while (std::getline(ss, value, ',') && i < 5)
+                while (token != NULL && i < 5)
                 {
-                    config.pn_swap[i++] = std::stoi(value);
+                    config.pn_swap[i++] = atoi(token);
+                    token = strtok(NULL, ",");
                 }
             }
-            else if (str.find("mclk_en") != std::string::npos)
+            else if (strstr(str, "mclk_en") != NULL)
             {
-                config.mclk_en = std::stoi(str.substr(str.find('=') + 1)) != 0;
+                config.mclk_en = atoi(strchr(str, '=') + 1) != 0;
             }
-            else if (str.find("mclk") != std::string::npos)
+            else if (strstr(str, "mclk") != NULL)
             {
-                config.mclk = std::stoi(str.substr(str.find('=') + 1));
+                config.mclk = atoi(strchr(str, '=') + 1);
             }
         }
 
